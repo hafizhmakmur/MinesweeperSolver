@@ -1,0 +1,7 @@
+out
+*.hi
+*.ho
+*.hs.swp
+*.hs.swn
+*.hs.swo
+*.o
