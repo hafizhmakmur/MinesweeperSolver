@@ -25,7 +25,7 @@ addMines :: Int -> [Int] -> Int -> Int
 addMines currentMine [] currentCon currentIdx = []
 addMines currentMine mineInCon currentCon currentIdx = 
     if (currentCon+currentIdx) .|. currentCon == 
-       (currentCon+currentIdx) then              -- bitwise magic
+       (currentCon+currentIdx) then         -- bitwise magic
        ((head mineInCon) + currentMine) :
         addMines currentMine
                  (tail mineInCon)
@@ -53,7 +53,7 @@ totalNextCon mineCount
              currentCon
              currentMine 
     = (choose (head containers) currentMine)
-      * (totalCase mineCount
+      * (totalCase' mineCount
                    (tail containers)
                    (tail $ addMines currentMine
                                     mineInCon
@@ -62,15 +62,17 @@ totalNextCon mineCount
                    (currentCon+1))
 
 -- Brute force all possibility for filling each containers
-totalCase :: [Int] -> [Int] -> [Int] -> Int
+-- length mineInCon == containers
+-- length containers == (2^length mineCount) -1
+-- container idx means what cells it interact with
+-- 00000 means it interact with cell 1,2,3,4,5
+-- 00001 means it interact with cell 2,3,4,5
+-- 10110 means it interact with cell 1,4
+-- 10001 means it interact with cell 2,3,4
+totalCase' :: [Int] -> [Int] -> [Int] -> Int
           -> Int
-totalCase mineCount [] [] currentCon = 1
-totalCase mineCount containers [] currentCon 
-    = totalCase mineCount 
-                containers 
-                (replicate (length containers) 0)
-                currentCon
-totalCase mineCount containers mineInCon currentCon
+totalCase' mineCount [] [] currentCon = 1
+totalCase' mineCount containers mineInCon currentCon
     | countZero (length mineCount) currentCon == 1 
         = totalNextCon mineCount
                        containers
@@ -86,10 +88,29 @@ totalCase mineCount containers mineInCon currentCon
                                       mineInCon
                                       currentCon)
 
+-- Given mine total on each cell and max container
+-- of each container, how many possible cases there are?
+totalCase :: [Int] -> [Int]
+          -> Int
+totalCase mineCount containers
+    | currentSize > idealSize 
+        = totalCase' mineCount
+                     (take idealSize containers)
+                     (replicate idealSize 0)
+                     0
+    | otherwise 
+        = totalCase' mineCount
+                     (containers ++ 
+                      (replicate (idealSize-currentSize) 0))
+                     (replicate idealSize 0)
+                     0
+    where idealSize = 2^(length mineCount) -1
+          currentSize = length containers
+
 main = do
     print (minimumMine 3 [8,2,10])
     print (addMines 3 [5,5,5,5] 2 0)
     print (countZero 2 0)
-    print (totalCase [1] [3] [] 0)
-    print (totalCase [1,2] [2,1,0] [] 0)
-    print (totalCase [1,2,1] [1,1,0,3,1,0,3] [] 0)
+    print (totalCase [1] [3,0,0,0,0,0,0,0])
+    print (totalCase [1,2] [2,1])
+    print (totalCase [1,2,1] [1,1,0,3,1,0,3])

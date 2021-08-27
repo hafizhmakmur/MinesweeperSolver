@@ -82,7 +82,9 @@ outerCase (m1, s1) (m2, s2) so
     = (outerCase1 (s1-so) (s2-so) so m1 m2,
        outerCase2 (s1-so) (s2-so) so m1 m2)
 
+main :: IO()
 main = do
     print (sigma 1 5 id)
     print (phi 1 5 id)
+    print (choose 1 3)
     print (outerCase' 1 1 1 1 1)
