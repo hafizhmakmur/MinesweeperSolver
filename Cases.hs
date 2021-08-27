@@ -107,10 +107,57 @@ totalCase mineCount containers
     where idealSize = 2^(length mineCount) -1
           currentSize = length containers
 
+-- Minus one for all related cells
+minusMine :: [Int] -> Int
+          -> [Int]
+minusMine [] currentCon = []
+minusMine (mine:mineCount) currentCon =
+    if mod currentCon 2 == 0 then
+        (mine-1) : minusMine mineCount (div currentCon 2)
+    else
+        mine : minusMine mineCount (div currentCon 2)
+
+-- Modify nth element in a list with f
+modifyNth :: [Int] -> (Int -> Int) -> Int
+          -> [Int]
+modifyNth [] f currentCon = []
+modifyNth (container:containers) f 0 = (f container) 
+                                       : containers
+modifyNth (container:containers) f currentCon
+    = container : modifyNth containers f (currentCon-1)
+
+-- Cases if one container is guaranteed one mine
+containerCase :: [Int] -> [Int] -> Int
+              -> Int
+containerCase mineCount containers currentCon
+    = totalCase (minusMine mineCount currentCon)
+                (modifyNth containers (\x -> x-1) currentCon)
+
+-- Enumare containerCase for all containers
+allConCase :: [Int] -> [Int]
+           -> [Int]
+allConCase mineCount containers
+    | currentSize > idealSize 
+        = allConCase mineCount
+                     (take idealSize containers)
+    | currentSize < idealSize
+        = allConCase mineCount
+                     (containers ++ 
+                      (replicate (idealSize-currentSize) 0))
+    | otherwise = map (containerCase mineCount containers)
+                      index
+    where idealSize = 2^(length mineCount) -1
+          currentSize = length containers
+          index = [0..((length containers) -1)]
+
 main = do
     print (minimumMine 3 [8,2,10])
     print (addMines 3 [5,5,5,5] 2 0)
     print (countZero 2 0)
+    print (minusMine [1,5,3,2,3] 8)
     print (totalCase [1] [3,0,0,0,0,0,0,0])
+    print (allConCase [1] [3,0,0,0,0,0,0,0,0])
     print (totalCase [1,2] [2,1])
+    print (allConCase [1,2] [2,1])
     print (totalCase [1,2,1] [1,1,0,3,1,0,3])
+    print (allConCase [1,2,1] [1,1,0,3,1,0,3])
